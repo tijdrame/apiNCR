@@ -1,56 +1,73 @@
 package com.boa.api.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.boa.api.config.ApplicationProperties;
+import com.boa.api.domain.ParamEndPoint;
 import com.boa.api.domain.Tracking;
+import com.boa.api.request.NCRRequest;
+import com.boa.api.response.NCRResponse;
+import com.boa.api.service.util.ICodeDescResponse;
 import com.boa.api.service.util.Utils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 public class ApiService {
-    
+
     private final Logger log = LoggerFactory.getLogger(ApiService.class);
     private final TrackingService trackingService;
     private final UserService userService;
     private final Utils utils;
     private final ParamEndPointService endPointService;
+    private final ApplicationProperties applicationProperties;
 
     public ApiService(TrackingService trackingService, UserService userService, Utils utils,
-            ParamEndPointService endPointService) {
+            ParamEndPointService endPointService, ApplicationProperties applicationProperties) {
         this.trackingService = trackingService;
         this.userService = userService;
         this.utils = utils;
         this.endPointService = endPointService;
+        this.applicationProperties = applicationProperties;
     }
 
-    public void oAuth(HttpServletRequest request) {
-        /*log.info("Enter in oAuth=== [{}]", authRequest);
-        Locale locale = defineLocale(authRequest.getLangue());
+    @Scheduled(cron = "*/600 * * * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?")
+    public void ncrProcessing() {
+        log.info("Enter in ncrProcessing===");
 
-        OAuthResponse genericResp = new OAuthResponse();
+        // NCRResponse genericResp = new NCRResponse();
         Tracking tracking = new Tracking();
         tracking.setDateRequest(Instant.now());
 
-        Optional<ParamEndPoint> endPoint = endPointService.findByCodeParam("oAuth");
+        Optional<ParamEndPoint> endPoint = endPointService.findByCodeParam("ncrPaye");
         if (!endPoint.isPresent()) {
-            genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-            genericResp.setDescription(messageSource.getMessage("service.absent", null, locale));
-            genericResp.setDateResponse(Instant.now());
-            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "oAuth", genericResp.toString(),
-                    authRequest.toString(), genericResp.getResponseReference());
+            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrPaye", "End point non paramétré",
+                    "CRON du " + Instant.now(), "");
             trackingService.save(tracking);
-            return genericResp;
         }
         try {
-            String jsonStr = new JSONObject().put("login", authRequest.getLogin())
-                    .put("pass", authRequest.getPassword()).put("country", authRequest.getCountry()).toString();
+            String jsonStr = new JSONObject().put("param1", "1111").put("param2", "2222").put("param3", "3333")
+                    .put("param4", "4444").toString();
             HttpURLConnection conn = utils.doConnexion(endPoint.get().getEndPoints(), jsonStr, "application/json", null,
                     null);
             BufferedReader br = null;
@@ -64,25 +81,59 @@ public class ApiService {
                     result += ligne;
                     ligne = br.readLine();
                 }
-                // result = IOUtils.toString(conn.getInputStream(), "UTF-8");
-                log.info("oAuth result ===== [{}]", result);
+                log.info("ncrPaye result ===== [{}]", result);
                 obj = new JSONObject(result);
-                obj = obj.getJSONObject("data");
+                JSONArray jsonArray = null;
+                JSONObject jsonObject = null;
+                ObjectMapper mapper = new ObjectMapper();
+                if (obj.toString() != null && !obj.isNull("outward")) {
+                    NCRRequest ncrRequest = new NCRRequest();
 
-                if (obj.toString() != null && !obj.isNull("rcode") && obj.get("rcode").equals("0100")) {
-                    genericResp.setCode(ICodeDescResponse.SUCCES_CODE);
-                    genericResp.setDescription(messageSource.getMessage("auth.success", null, locale));
-                    genericResp.setDateResponse(Instant.now());
-                    genericResp.setUserCode(obj.getString("rucode"));
-                    tracking = createTracking(tracking, ICodeDescResponse.SUCCES_CODE, request.getRequestURI(),
-                            genericResp.toString(), authRequest.toString(), genericResp.getResponseReference());
+                    String numGen = RandomStringUtils.randomNumeric(15, 15);
+
+                    if (obj.get("outward") instanceof JSONArray) {
+                        jsonArray = obj.getJSONArray("outward");
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            ncrRequest = constructRequest(jsonArray.getJSONObject(i));
+                            ncrRequest.setUserName(applicationProperties.getUserName());
+                            ncrRequest.setSessionID(applicationProperties.getSessionID());
+                            ncrRequest.setUserID(applicationProperties.getUserID());
+                            ncrRequest.setPresentingBankRoutNumber(applicationProperties.getPresentingBankRoutNumber());
+
+                            ncrRequest.setBatchNumber(numGen);
+                            ncrRequest.setItemSequenceNumber(numGen);
+                            ncrRequest.setSerialNumber(numGen.substring(0, 6));
+
+                            String json = mapper.writeValueAsString(ncrRequest);
+                            Boolean res = callNcrPay(json);
+
+                            if (res) {
+                                // TODO traitement resp positive de ncr
+                            } else {
+                                // TODO resp negative
+                            }
+                        }
+                    } else if (obj.get("outward") instanceof JSONObject) {
+                        jsonObject = obj.getJSONObject("outward");
+                        ncrRequest = constructRequest(jsonObject);
+
+                        String json = mapper.writeValueAsString(ncrRequest);
+                        Boolean res = callNcrPay(json);
+
+                        if (res) {
+                            // TODO traitement resp positive de ncr
+                        } else {
+                            // TODO resp negative
+                        }
+                    }
+
+                    tracking = createTracking(tracking, ICodeDescResponse.SUCCES_CODE, "ncrProcessing",
+                            "SUCCES response wso2", "CRON du " + Instant.now(), "");
                 } else {
-                    String ret = getMsgEchecAuth(obj, locale);
-                    genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-                    genericResp.setDateResponse(Instant.now());
-                    genericResp.setDescription(ret);
-                    tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(),
-                            genericResp.toString(), authRequest.toString(), genericResp.getResponseReference());
+                    // cron resp != 200
+
+                    tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing",
+                            "ECHEC response wso2 <> 200", "CRON du " + Instant.now(), "");
                 }
             } else {
                 br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
@@ -93,32 +144,17 @@ public class ApiService {
                 }
                 log.info("resp envoi error ===== [{}]", result);
                 obj = new JSONObject(result);
-                /*
-                 * ObjectMapper mapper = new ObjectMapper(); Map<String, Object> map =
-                 * mapper.readValue(result, Map.class);
-                 
                 obj = new JSONObject(result);
-                // genericResp.setData(map);
-                genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-                genericResp.setDateResponse(Instant.now());
-                genericResp.setDescription(messageSource.getMessage("auth.error.exep", null, locale));
-                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(),
-                        genericResp.toString(), authRequest.toString(), genericResp.getResponseReference());
+                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", result,
+                        "CRON du " + Instant.now(), "");
             }
         } catch (Exception e) {
-            log.error("Exception in oAuth [{}]", e);
-            genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-            genericResp.setDateResponse(Instant.now());
-            // genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION + " " +
-            // e.getMessage());
-            genericResp.setDescription(messageSource.getMessage("auth.error.exep", null, locale) + e.getMessage());
-            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(), e.getMessage(),
-                    authRequest.toString(), genericResp.getResponseReference());
+            log.error("Exception in ncrPaye [{}]", e);
+            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", e.getMessage(),
+                    "CRON du " + Instant.now(), "");
         }
         trackingService.save(tracking);
-        return genericResp;*/
     }
-
 
     public Tracking createTracking(Tracking tracking, String code, String endPoint, String result, String req,
             String reqId) {
@@ -132,4 +168,48 @@ public class ApiService {
         tracking.setRequestTr(req);
         return tracking;
     }
+
+    private Boolean callNcrPay(String jsonStr) {
+        log.info("=============In callNcrPay [{}]", jsonStr);
+        // http://10.120.71.11/ACHWebApi/api/ach/NewOutward
+        HttpURLConnection conn;
+        try {
+            conn = utils.doConnexion(applicationProperties.getUrlNewOutward(), jsonStr, "application/json", null, null);
+            log.info("resp code envoi [{}]", conn.getResponseCode());
+            if (conn.getResponseCode() == 200) {
+                return true;
+            }
+        } catch (IOException e) {
+            log.info("Erreur sur callNcrPay [{}]", e);
+        }
+        return false;
+    }
+
+    private NCRRequest constructRequest(JSONObject myObj) {
+        NCRRequest ncrRequest = new NCRRequest();
+        try {
+            ncrRequest.branchCode(myObj.getString("AGENCE")).payorBankRoutNumber(myObj.getString("SCODE"))
+            .amount(myObj.getDouble("MNTTOTBE")).accountNumber(myObj.getString("RCOMPTE"))
+            .payerName(myObj.getString("NOMBQBE")).transactionDetails(myObj.getString("MOTIF"))
+            .depositorAccountNumber(myObj.getString("COMPTE")).payeeName(myObj.getString("DORDRED"))
+            .userBranch(myObj.getString("AGENCE"));
+        } catch (JSONException e) {
+            return null;
+        }
+        return ncrRequest;
+    }
+
+    /*
+     * public static void main(String[] args) { String num =
+     * RandomStringUtils.randomNumeric(15, 15); System.out.println("rand =" + num);
+     * System.out.println("rand =" + num.substring(0, 6));
+     * 
+     * NCRRequest req = new NCRRequest(); req.setAccountNumber("xxx01");
+     * ObjectMapper mapper = new ObjectMapper(); try { String json =
+     * mapper.writeValueAsString(req); System.out.println("res= " + json);
+     * System.out.println("date= " + Instant.now()); } catch
+     * (JsonProcessingException e) { // TODO Auto-generated catch block
+     * e.printStackTrace(); } }
+     */
+
 }

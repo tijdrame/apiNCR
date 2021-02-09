@@ -162,4 +162,9 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  userName: boa
+  presentingBankRoutNumber: 210100
+  userID: super
+  sessionID: 21
+  urlNewOutward: http://10.120.71.11/ACHWebApi/api/ach/NewOutward

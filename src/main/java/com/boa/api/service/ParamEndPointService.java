@@ -70,4 +70,8 @@ public class ParamEndPointService {
         log.debug("Request to delete ParamEndPoint : {}", id);
         paramEndPointRepository.deleteById(id);
     }
+
+	public Optional<ParamEndPoint> findByCodeParam(String codeParam) {
+		return paramEndPointRepository.findByCodeParam(codeParam);
+	}
 }
