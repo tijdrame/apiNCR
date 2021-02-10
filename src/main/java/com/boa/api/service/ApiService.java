@@ -59,13 +59,20 @@ public class ApiService {
         Tracking tracking = new Tracking();
         tracking.setDateRequest(Instant.now());
 
-        Optional<ParamEndPoint> endPoint = endPointService.findByCodeParam("ncrPaye");
-        if (!endPoint.isPresent()) {
-            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrPaye", "End point non paramétré",
-                    "CRON du " + Instant.now(), "");
-            trackingService.save(tracking);
-        }
         try {
+            Optional<ParamEndPoint> endPoint = endPointService.findByCodeParam("ncrPaye");
+            if (!endPoint.isPresent()) {
+                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrPaye", "End point non paramétré",
+                        "CRON du " + Instant.now(), "");
+                trackingService.save(tracking);
+            }
+            Optional<ParamEndPoint> inEndPoint = endPointService.findByCodeParam("ncrIn");
+            if (!inEndPoint.isPresent()) {
+                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrIn", "End point non paramétré",
+                        "CRON du " + Instant.now(), "");
+                trackingService.save(tracking);
+            }
+
             String jsonStr = new JSONObject().put("param1", "1111").put("param2", "2222").put("param3", "3333")
                     .put("param4", "4444").toString();
             HttpURLConnection conn = utils.doConnexion(endPoint.get().getEndPoints(), jsonStr, "application/json", null,
@@ -95,6 +102,7 @@ public class ApiService {
                         jsonArray = obj.getJSONArray("outward");
                         for (int i = 0; i < jsonArray.length(); i++) {
                             ncrRequest = constructRequest(jsonArray.getJSONObject(i));
+                            if(ncrRequest==null) continue;
                             ncrRequest.setUserName(applicationProperties.getUserName());
                             ncrRequest.setSessionID(applicationProperties.getSessionID());
                             ncrRequest.setUserID(applicationProperties.getUserID());
@@ -109,6 +117,9 @@ public class ApiService {
 
                             if (res) {
                                 // TODO traitement resp positive de ncr
+                                jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
+                                    .put("param3", "3333").put("param4", "4444").toString();
+                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null);
                             } else {
                                 // TODO resp negative
                             }
@@ -122,6 +133,9 @@ public class ApiService {
 
                         if (res) {
                             // TODO traitement resp positive de ncr
+                            jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
+                                    .put("param3", "3333").put("param4", "4444").toString();
+                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null);
                         } else {
                             // TODO resp negative
                         }
@@ -134,6 +148,7 @@ public class ApiService {
 
                     tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing",
                             "ECHEC response wso2 <> 200", "CRON du " + Instant.now(), "");
+                    tracking.setResponseTr(result);
                 }
             } else {
                 br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
@@ -147,9 +162,10 @@ public class ApiService {
                 obj = new JSONObject(result);
                 tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", result,
                         "CRON du " + Instant.now(), "");
+                tracking.setResponseTr(result);
             }
         } catch (Exception e) {
-            log.error("Exception in ncrPaye [{}]", e);
+            log.error("Exception in ncrPaye [{}]", e.getMessage());
             tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", e.getMessage(),
                     "CRON du " + Instant.now(), "");
         }
@@ -176,11 +192,30 @@ public class ApiService {
         try {
             conn = utils.doConnexion(applicationProperties.getUrlNewOutward(), jsonStr, "application/json", null, null);
             log.info("resp code envoi [{}]", conn.getResponseCode());
-            if (conn.getResponseCode() == 200) {
+            if (conn !=null && conn.getResponseCode() == 200) {
+                Tracking tracking = new Tracking();
+                tracking.setRequestId("");
+                tracking.setCodeResponse("200");
+                tracking.setDateResponse(Instant.now());
+                tracking.setEndPoint("callNcrPay");
+                tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
+                tracking.setResponseTr("OK");
+                tracking.setRequestTr(jsonStr);
+                trackingService.save(tracking);
                 return true;
             }
         } catch (IOException e) {
             log.info("Erreur sur callNcrPay [{}]", e);
+            Tracking tracking = new Tracking();
+                tracking.setRequestId("");
+                tracking.setCodeResponse("402");
+                tracking.setDateResponse(Instant.now());
+                tracking.setEndPoint("callNcrPay");
+                tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
+                tracking.setResponseTr("KO");
+                tracking.setRequestTr(jsonStr);
+                tracking.setResponseTr(e.getMessage());
+                trackingService.save(tracking);
         }
         return false;
     }
@@ -189,11 +224,12 @@ public class ApiService {
         NCRRequest ncrRequest = new NCRRequest();
         try {
             ncrRequest.branchCode(myObj.getString("AGENCE")).payorBankRoutNumber(myObj.getString("SCODE"))
-            .amount(myObj.getDouble("MNTTOTBE")).accountNumber(myObj.getString("RCOMPTE"))
-            .payerName(myObj.getString("NOMBQBE")).transactionDetails(myObj.getString("MOTIF"))
-            .depositorAccountNumber(myObj.getString("COMPTE")).payeeName(myObj.getString("DORDRED"))
-            .userBranch(myObj.getString("AGENCE"));
+                    .amount(myObj.getDouble("MNTTOTBE")).accountNumber(myObj.getString("RCOMPTE"))
+                    .payerName(myObj.getString("NOMBQBE")).transactionDetails(myObj.getString("MOTIF"))
+                    .depositorAccountNumber(myObj.getString("COMPTE")).payeeName(myObj.getString("DORDRED"))
+                    .userBranch(myObj.getString("AGENCE")).nooper(myObj.getString("NOOPER"));
         } catch (JSONException e) {
+            log.info("Exception in constructRequest [{}]", e);
             return null;
         }
         return ncrRequest;

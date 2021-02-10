@@ -17,12 +17,13 @@ public class NCRRequest {
     private String userBranch;
     private String sessionID;
     private Double amount;
+    private String nooper;
 
 
     public NCRRequest() {
     }
 
-    public NCRRequest(String branchCode, String userName, String batchNumber, String itemSequenceNumber, String payorBankRoutNumber, String accountNumber, String serialNumber, String presentingBankRoutNumber, String payerName, String transactionDetails, String depositorAccountNumber, String payeeName, String userID, String userBranch, String sessionID, Double amount) {
+    public NCRRequest(String branchCode, String userName, String batchNumber, String itemSequenceNumber, String payorBankRoutNumber, String accountNumber, String serialNumber, String presentingBankRoutNumber, String payerName, String transactionDetails, String depositorAccountNumber, String payeeName, String userID, String userBranch, String sessionID, Double amount, String nooper) {
         this.branchCode = branchCode;
         this.userName = userName;
         this.batchNumber = batchNumber;
@@ -39,6 +40,7 @@ public class NCRRequest {
         this.userBranch = userBranch;
         this.sessionID = sessionID;
         this.amount = amount;
+        this.nooper = nooper;
     }
 
     public String getBranchCode() {
@@ -169,6 +171,14 @@ public class NCRRequest {
         this.amount = amount;
     }
 
+    public String getNooper() {
+        return this.nooper;
+    }
+
+    public void setNooper(String nooper) {
+        this.nooper = nooper;
+    }
+
     public NCRRequest branchCode(String branchCode) {
         setBranchCode(branchCode);
         return this;
@@ -249,6 +259,11 @@ public class NCRRequest {
         return this;
     }
 
+    public NCRRequest nooper(String nooper) {
+        setNooper(nooper);
+        return this;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -268,7 +283,9 @@ public class NCRRequest {
             ", userBranch='" + getUserBranch() + "'" +
             ", sessionID='" + getSessionID() + "'" +
             ", amount='" + getAmount() + "'" +
+            ", nooper='" + getNooper() + "'" +
             "}";
     }
+    
     
 }
