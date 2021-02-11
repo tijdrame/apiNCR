@@ -168,3 +168,5 @@ application:
   userID: super
   sessionID: 21
   urlNewOutward: http://10.120.71.11/ACHWebApi/api/ach/NewOutward
+  userAuth: super
+  password: 2CB54983BDE8AD02287C239FCF648D0C9AF7ADF7

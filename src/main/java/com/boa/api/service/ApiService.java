@@ -76,7 +76,7 @@ public class ApiService {
             String jsonStr = new JSONObject().put("param1", "1111").put("param2", "2222").put("param3", "3333")
                     .put("param4", "4444").toString();
             HttpURLConnection conn = utils.doConnexion(endPoint.get().getEndPoints(), jsonStr, "application/json", null,
-                    null);
+                    null, false);
             BufferedReader br = null;
             JSONObject obj = new JSONObject();
             String result = "";
@@ -119,7 +119,7 @@ public class ApiService {
                                 // TODO traitement resp positive de ncr
                                 jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
                                     .put("param3", "3333").put("param4", "4444").toString();
-                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null);
+                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null, false);
                             } else {
                                 // TODO resp negative
                             }
@@ -135,7 +135,7 @@ public class ApiService {
                             // TODO traitement resp positive de ncr
                             jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
                                     .put("param3", "3333").put("param4", "4444").toString();
-                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null);
+                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null, false);
                         } else {
                             // TODO resp negative
                         }
@@ -191,7 +191,7 @@ public class ApiService {
         // http://10.120.71.11/ACHWebApi/api/ach/NewOutward
         HttpURLConnection conn;
         try {
-            conn = utils.doConnexion(applicationProperties.getUrlNewOutward(), jsonStr, "application/json", null, null);
+            conn = utils.doConnexion(applicationProperties.getUrlNewOutward(), jsonStr, "application/json", null, null, true);
             log.info("resp code envoi [{}]", conn.getResponseCode());
             if (conn !=null && conn.getResponseCode() == 200) {
                 Tracking tracking = new Tracking();
@@ -206,7 +206,7 @@ public class ApiService {
                 return true;
             }
         } catch (IOException e) {
-            log.info("Erreur sur callNcrPay [{}]", e);
+            log.error("Erreur sur callNcrPay [{}]", e);
             Tracking tracking = new Tracking();
                 tracking.setRequestId("");
                 tracking.setCodeResponse("402");
@@ -230,7 +230,7 @@ public class ApiService {
                     .depositorAccountNumber(myObj.getString("COMPTE")).payeeName(myObj.getString("DORDRED"))
                     .userBranch(myObj.getString("AGENCE")).nooper(myObj.getString("NOOPER"));
         } catch (JSONException e) {
-            log.info("Exception in constructRequest [{}]", e);
+            log.error("Exception in constructRequest [{}]", e);
             return null;
         }
         return ncrRequest;

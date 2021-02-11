@@ -15,6 +15,8 @@ public class ApplicationProperties {
     private String userID;
     private String sessionID;
     private String urlNewOutward;
+    private String userAuth;
+    private String password;
 
     public String getUserName() {
         return this.userName;
@@ -54,6 +56,22 @@ public class ApplicationProperties {
 
     public void setUrlNewOutward(String urlNewOutward) {
         this.urlNewOutward = urlNewOutward;
+    }
+
+    public String getUserAuth() {
+        return this.userAuth;
+    }
+
+    public void setUserAuth(String userAuth) {
+        this.userAuth = userAuth;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
 }
