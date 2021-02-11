@@ -34,7 +34,7 @@ public class Tracking implements Serializable {
     private String endPoint;
 
     @NotNull
-    @Column(name = "login_acteur", nullable = false)
+    @Column(name = "login_acteur", nullable = true)
     private String loginActeur;
 
     @NotNull
