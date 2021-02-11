@@ -50,10 +50,10 @@ public class ApiService {
         this.applicationProperties = applicationProperties;
     }
 
-    @Scheduled(cron = "*/600 * * * * ?")
+    @Scheduled(cron = "*/1800 * * * * ?")
     // @Scheduled(cron = "0 0 12 * * ?")
     public void ncrProcessing() {
-        log.info("Enter in ncrProcessing===");
+        log.info("Enter in ncrProcessing===[{}]", Instant.now());
 
         // NCRResponse genericResp = new NCRResponse();
         Tracking tracking = new Tracking();
@@ -170,6 +170,7 @@ public class ApiService {
                     "CRON du " + Instant.now(), "");
         }
         trackingService.save(tracking);
+        log.info("End CRON at =====================[{}]", Instant.now());
     }
 
     public Tracking createTracking(Tracking tracking, String code, String endPoint, String result, String req,

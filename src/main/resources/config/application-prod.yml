@@ -33,9 +33,9 @@ spring:
       enabled: false
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://localhost:5432/apiNCR
-    username: apiNCR
-    password:
+    url: jdbc:postgresql://10.170.102.35:5432/boa_ncr_db
+    username: ncrbd_user
+    password: 2-P=o$1j+ubve,c$<xmU
     hikari:
       poolName: Hikari
       auto-commit: false
