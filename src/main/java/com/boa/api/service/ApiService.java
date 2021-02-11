@@ -180,7 +180,7 @@ public class ApiService {
         tracking.setCodeResponse(code);
         tracking.setDateResponse(Instant.now());
         tracking.setEndPoint(endPoint);
-        tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
+        //tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
         tracking.setResponseTr(result);
         tracking.setRequestTr(req);
         return tracking;
@@ -199,7 +199,7 @@ public class ApiService {
                 tracking.setCodeResponse("200");
                 tracking.setDateResponse(Instant.now());
                 tracking.setEndPoint("callNcrPay");
-                tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
+                //tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
                 tracking.setResponseTr("OK");
                 tracking.setRequestTr(jsonStr);
                 trackingService.save(tracking);
@@ -212,7 +212,7 @@ public class ApiService {
                 tracking.setCodeResponse("402");
                 tracking.setDateResponse(Instant.now());
                 tracking.setEndPoint("callNcrPay");
-                tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
+                //tracking.setLoginActeur(userService.getUserWithAuthorities().get().getLogin());
                 tracking.setResponseTr("KO");
                 tracking.setRequestTr(jsonStr);
                 tracking.setResponseTr(e.getMessage());
