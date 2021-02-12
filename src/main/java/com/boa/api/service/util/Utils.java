@@ -58,7 +58,7 @@ public class Utils {
             os.flush();
         } catch (Exception e) {
             log.error("Error in doConn endpoint[{}], params [{}] & trace [{}]", e);
-            return conn;
+            return null;
         }
         os.close();
         return conn;

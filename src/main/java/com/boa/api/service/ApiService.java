@@ -50,7 +50,7 @@ public class ApiService {
         this.applicationProperties = applicationProperties;
     }
 
-    @Scheduled(cron = "*/1800 * * * * ?")
+    @Scheduled(cron = "0 0/45 * * * ?")
     // @Scheduled(cron = "0 0 12 * * ?")
     public void ncrProcessing() {
         log.info("Enter in ncrProcessing===[{}]", Instant.now());
@@ -151,7 +151,7 @@ public class ApiService {
                     tracking.setResponseTr(result);
                 }
             } else {
-                br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                /*br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
                 String ligne = br.readLine();
                 while (ligne != null) {
                     result += ligne;
@@ -159,14 +159,14 @@ public class ApiService {
                 }
                 log.info("resp envoi error ===== [{}]", result);
                 obj = new JSONObject(result);
-                obj = new JSONObject(result);
-                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", result,
+                obj = new JSONObject(result);*/
+                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", "Connexeion impossible",
                         "CRON du " + Instant.now(), "");
                 tracking.setResponseTr(result);
             }
         } catch (Exception e) {
             log.error("Exception in ncrPaye [{}]", e.getMessage());
-            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", e.getMessage(),
+            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", "Connexeion impossible",
                     "CRON du " + Instant.now(), "");
         }
         trackingService.save(tracking);
@@ -183,6 +183,7 @@ public class ApiService {
         tracking.setLoginActeur("x");
         tracking.setResponseTr(result);
         tracking.setRequestTr(req);
+        tracking.setDateRequest(Instant.now());
         return tracking;
     }
 
