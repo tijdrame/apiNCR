@@ -93,16 +93,17 @@ public class ApiService {
                 JSONArray jsonArray = null;
                 JSONObject jsonObject = null;
                 ObjectMapper mapper = new ObjectMapper();
-                if (obj.toString() != null && !obj.isNull("outward")) {
+                if (obj.toString() != null && !obj.isNull("data") && !obj.getJSONObject("data").isNull("outward")) {
                     NCRRequest ncrRequest = new NCRRequest();
 
                     String numGen = RandomStringUtils.randomNumeric(15, 15);
 
-                    if (obj.get("outward") instanceof JSONArray) {
-                        jsonArray = obj.getJSONArray("outward");
+                    if (obj.getJSONObject("data").get("outward") instanceof JSONArray) {
+                        jsonArray = obj.getJSONObject("data").getJSONArray("outward");
                         for (int i = 0; i < jsonArray.length(); i++) {
                             ncrRequest = constructRequest(jsonArray.getJSONObject(i));
-                            if(ncrRequest==null) continue;
+                            if (ncrRequest == null)
+                                continue;
                             ncrRequest.setUserName(applicationProperties.getUserName());
                             ncrRequest.setSessionID(applicationProperties.getSessionID());
                             ncrRequest.setUserID(applicationProperties.getUserID());
@@ -113,29 +114,45 @@ public class ApiService {
                             ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
                             String json = mapper.writeValueAsString(ncrRequest);
+                            log.info("before calling callNcrPay [{}]", json);
                             Boolean res = callNcrPay(json);
 
                             if (res) {
                                 // TODO traitement resp positive de ncr
                                 jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
-                                    .put("param3", "3333").put("param4", "4444").toString();
-                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null, false);
+                                        .put("param3", "3333").put("param4", "4444").toString();
+                                utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null,
+                                        null, false);
                             } else {
                                 // TODO resp negative
                             }
                         }
-                    } else if (obj.get("outward") instanceof JSONObject) {
-                        jsonObject = obj.getJSONObject("outward");
+                    } else if (obj.getJSONObject("data").get("outward") instanceof JSONObject) {
+                        jsonObject = obj.getJSONObject("data").getJSONObject("outward");
                         ncrRequest = constructRequest(jsonObject);
+                        if (ncrRequest == null)
+                            return;
+                        ncrRequest.setUserName(applicationProperties.getUserName());
+                        ncrRequest.setSessionID(applicationProperties.getSessionID());
+                        ncrRequest.setUserID(applicationProperties.getUserID());
+                        ncrRequest.setPresentingBankRoutNumber(applicationProperties.getPresentingBankRoutNumber());
+
+                        ncrRequest.setBatchNumber(numGen);
+                        ncrRequest.setItemSequenceNumber(numGen);
+                        ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
                         String json = mapper.writeValueAsString(ncrRequest);
+                        log.info("before calling callNcrPay [{}]", json);
+
+                        // json = mapper.writeValueAsString(ncrRequest);
                         Boolean res = callNcrPay(json);
 
                         if (res) {
                             // TODO traitement resp positive de ncr
                             jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
                                     .put("param3", "3333").put("param4", "4444").toString();
-                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null, false);
+                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null,
+                                    false);
                         } else {
                             // TODO resp negative
                         }
@@ -151,17 +168,14 @@ public class ApiService {
                     tracking.setResponseTr(result);
                 }
             } else {
-                /*br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-                String ligne = br.readLine();
-                while (ligne != null) {
-                    result += ligne;
-                    ligne = br.readLine();
-                }
-                log.info("resp envoi error ===== [{}]", result);
-                obj = new JSONObject(result);
-                obj = new JSONObject(result);*/
-                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", "Connexeion impossible",
-                        "CRON du " + Instant.now(), "");
+                /*
+                 * br = new BufferedReader(new InputStreamReader(conn.getErrorStream())); String
+                 * ligne = br.readLine(); while (ligne != null) { result += ligne; ligne =
+                 * br.readLine(); } log.info("resp envoi error ===== [{}]", result); obj = new
+                 * JSONObject(result); obj = new JSONObject(result);
+                 */
+                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing",
+                        "Connexeion impossible", "CRON du " + Instant.now(), "");
                 tracking.setResponseTr(result);
             }
         } catch (Exception e) {
@@ -192,9 +206,10 @@ public class ApiService {
         // http://10.120.71.11/ACHWebApi/api/ach/NewOutward
         HttpURLConnection conn;
         try {
-            conn = utils.doConnexion(applicationProperties.getUrlNewOutward(), jsonStr, "application/json", null, null, true);
+            conn = utils.doConnexion(applicationProperties.getUrlNewOutward(), jsonStr, "application/json", null, null,
+                    true);
             log.info("resp code envoi [{}]", conn.getResponseCode());
-            if (conn !=null && conn.getResponseCode() == 200) {
+            if (conn != null && conn.getResponseCode() == 200) {
                 Tracking tracking = new Tracking();
                 tracking.setRequestId("");
                 tracking.setCodeResponse("200");
@@ -209,15 +224,15 @@ public class ApiService {
         } catch (IOException e) {
             log.error("Erreur sur callNcrPay [{}]", e);
             Tracking tracking = new Tracking();
-                tracking.setRequestId("");
-                tracking.setCodeResponse("402");
-                tracking.setDateResponse(Instant.now());
-                tracking.setEndPoint("callNcrPay");
-                tracking.setLoginActeur("x");
-                tracking.setResponseTr("KO");
-                tracking.setRequestTr(jsonStr);
-                tracking.setResponseTr(e.getMessage());
-                trackingService.save(tracking);
+            tracking.setRequestId("");
+            tracking.setCodeResponse("402");
+            tracking.setDateResponse(Instant.now());
+            tracking.setEndPoint("callNcrPay");
+            tracking.setLoginActeur("x");
+            tracking.setResponseTr("KO");
+            tracking.setRequestTr(jsonStr);
+            tracking.setResponseTr(e.getMessage());
+            trackingService.save(tracking);
         }
         return false;
     }
