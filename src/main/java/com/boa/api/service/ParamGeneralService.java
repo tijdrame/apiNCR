@@ -70,4 +70,8 @@ public class ParamGeneralService {
         log.debug("Request to delete ParamGeneral : {}", id);
         paramGeneralRepository.deleteById(id);
     }
+
+	public Optional<ParamGeneral> findByCode(String code) {
+		return paramGeneralRepository.findByCode(code);
+	}
 }

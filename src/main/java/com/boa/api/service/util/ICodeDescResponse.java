@@ -19,6 +19,7 @@ public interface ICodeDescResponse {
     public static String FILIALE_ABSENT_DESC = "Proxy injoignable";
     public static String PARAM_ABSENT_DESC = "Parametre non trouve.";
     public static String SERVICE_ABSENT_DESC = "Service non parametre.";
+    public static String DEBIT_ACCOUNT_ABSENT = "Compte debiteur absent et non parametre.";
     public static String RESPONSE_INC = "Quelque chose d'innatendu s'est produit, veuillez contacter l'Administrateur.";
     public static String ADRESSE_WS = "http://172.17.178.3:8089/testurl";
     public static String SERVICE_VIREMENT_DOMESTIQUE = "VirementDomestique";

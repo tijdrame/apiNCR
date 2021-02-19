@@ -1,12 +1,18 @@
 package com.boa.api.web;
 
+import java.time.Instant;
+
 import javax.servlet.http.HttpServletRequest;
 
+import com.boa.api.request.InwardRequest;
+import com.boa.api.response.InwardResponse;
 import com.boa.api.service.ApiService;
+import com.boa.api.service.util.ICodeDescResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,22 +30,30 @@ public class ApiResource {
         this.apiService = apiService;
     }
 
-    /*@PostMapping("/oAuth")
-    public ResponseEntity<OAuthResponse> oAuth(@RequestBody OAuthRequest authRequest, HttpServletRequest request) {
-        log.debug("REST request to assetFin : [{}]", authRequest);
-        OAuthResponse response = new OAuthResponse();
-        if (controleParam(authRequest.getCountry()) || controleParam(authRequest.getLogin())
-                || controleParam(authRequest.getPassword()) || controleParam(authRequest.getLangue())) {
-            Locale locale = defineLocale(authRequest.getLangue());
+    @PostMapping("/NewInward")
+    public ResponseEntity<InwardResponse> newInward(@RequestBody InwardRequest inwardRequest, HttpServletRequest request) {
+        log.debug("REST request to NewInward : [{}]", inwardRequest);
+        InwardResponse response = new InwardResponse();
+        if (controleParam(inwardRequest.getCreditorAccount()) || controleParam(inwardRequest.getAmount())
+                || controleParam(inwardRequest.getCurrency()) || controleParam(inwardRequest.getTransfertDate())
+                || controleParam(inwardRequest.getDescription()) || controleParam(inwardRequest.getLanguage())
+                || controleParam(inwardRequest.getSameUser()) ) {
             response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
             response.setDateResponse(Instant.now());
-            response.setDescription(messageSource.getMessage("param.oblig", null, locale));
+            response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
             return ResponseEntity.badRequest().header("Authorization", request.getHeader("Authorization"))
                     .body(response);
         }
-        response = apiService.oAuth(authRequest, request);
+        response = apiService.newInward(inwardRequest, request);
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
-    }*/
+    }
+
+    private Boolean controleParam(Object param) {
+        Boolean flag = false;
+        if (StringUtils.isEmpty(param))
+            flag = true;
+        return flag;
+    }
 
     
 }

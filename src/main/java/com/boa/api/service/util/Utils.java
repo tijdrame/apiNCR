@@ -51,6 +51,9 @@ public class Utils {
             if (!StringUtils.isEmpty(token))
                 conn.setRequestProperty("Authorization", token);
 
+            conn.setConnectTimeout(8000);// 5000 ms <=> 5s
+            conn.setReadTimeout(8000);// 5000 ms <=> 5s
+
             // tracking.setRequestTr(jsonString);
             os = conn.getOutputStream();
             byte[] postDataBytes = params.getBytes();
