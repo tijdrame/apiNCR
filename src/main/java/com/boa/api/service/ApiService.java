@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -277,11 +278,11 @@ public class ApiService {
         }
         
         try {
-            String jsonStr = new JSONObject().put("i_compte_debiteur", inwardRequest.getDebitorAccount())
-                    .put("i_compte_crediteur", inwardRequest.getCreditorAccount()).put("i_montant", inwardRequest.getAmount())
-                    .put("i_devise_montant", inwardRequest.getCurrency()).put("i_date_trsf", inwardRequest.getTransfertDate())
-                    .put("i_motif", inwardRequest.getDescription()).put("i_langue", inwardRequest.getLanguage())
-                    .put("i_xmeme_utilisateur", inwardRequest.getSameUser()).toString();
+            String jsonStr = new JSONObject().put("cptDeb", inwardRequest.getDebitorAccount())
+                    .put("cptCred", inwardRequest.getCreditorAccount()).put("amount", inwardRequest.getAmount())
+                    .put("devise", inwardRequest.getCurrency()).put("dateTrf", inwardRequest.getTransfertDate())
+                    .put("motif", inwardRequest.getDescription()).put("language", inwardRequest.getLanguage())
+                    .put("xmemeUser", inwardRequest.getSameUser()).toString();
                 log.info("Requete newInward wso2 = [{}]", jsonStr);
             HttpURLConnection conn = utils.doConnexion(endPoint.get().getEndPoints(), jsonStr, "application/json", null,
                     null, false);
@@ -298,13 +299,18 @@ public class ApiService {
                 }
                 // result = IOUtils.toString(conn.getInputStream(), "UTF-8");
                 log.info("newInward result ===== [{}]", result);
+                // if(result.contains(";")) result = result.replace(";", " ");
                 obj = new JSONObject(result);
-                obj = obj.getJSONObject("data");
+                obj = obj.getJSONObject("data"); 
 
-                if (obj.toString() != null && !obj.isNull("rcode") && obj.get("rcode").equals("0100")) {
+                if (obj.toString() != null && !obj.isNull("responses") && !obj.getJSONObject("responses").getString("response").contains("-1")) {
                     genericResp.setCode(ICodeDescResponse.SUCCES_CODE);
                     genericResp.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
                     genericResp.setDateResponse(Instant.now());
+                    obj = obj.getJSONObject("responses");
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> map = mapper.readValue(obj.toString(), Map.class);
+                    genericResp.setDataInward(map);
                     //genericResp.setUserCode(obj.getString("rucode"));
                     tracking = createTracking(tracking, ICodeDescResponse.SUCCES_CODE, request.getRequestURI(),
                             genericResp.toString(), inwardRequest.toString(), genericResp.getResponseReference());
@@ -312,6 +318,9 @@ public class ApiService {
                     genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
                     genericResp.setDateResponse(Instant.now());
                     genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> map = mapper.readValue(obj.toString(), Map.class);
+                    genericResp.setDataInward(map);
                     tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(),
                             genericResp.toString(), inwardRequest.toString(), genericResp.getResponseReference());
                 }
@@ -324,12 +333,11 @@ public class ApiService {
                 }
                 log.info("resp envoi error ===== [{}]", result);
                 obj = new JSONObject(result);
-                /*
-                 * ObjectMapper mapper = new ObjectMapper(); Map<String, Object> map =
-                 * mapper.readValue(result, Map.class);
-                 */
-                obj = new JSONObject(result);
-                // genericResp.setData(map);
+                
+                ObjectMapper mapper = new ObjectMapper(); Map<String, Object> map =
+                mapper.readValue(result, Map.class);
+                
+                genericResp.setDataInward(map);
                 genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
                 genericResp.setDateResponse(Instant.now());
                 genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
