@@ -17,6 +17,7 @@ public class ApplicationProperties {
     private String urlNewOutward;
     private String userAuth;
     private String password;
+    private Integer timeOut;
 
     public String getUserName() {
         return this.userName;
@@ -72,6 +73,14 @@ public class ApplicationProperties {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Integer getTimeOut() {
+        return this.timeOut;
+    }
+
+    public void setTimeOut(Integer timeOut) {
+        this.timeOut = timeOut;
     }
 
 }
