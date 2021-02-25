@@ -88,7 +88,7 @@ public class ApiService {
             BufferedReader br = null;
             JSONObject obj = new JSONObject();
             String result = "";
-            log.info("resp code envoi [{}]", conn.getResponseCode());
+            log.info("resp code envoi ncrPaye [{}]", conn.getResponseCode());
             if (conn != null && conn.getResponseCode() == 200) {
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String ligne = br.readLine();
@@ -122,7 +122,7 @@ public class ApiService {
                             ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
                             // String json = mapper.writeValueAsString(ncrRequest);
-                            String json = new JSONObject().put("Branch", ncrRequest.getBranchCode())
+                            String json = new JSONObject().put("Branch", ncrRequest.getPresentingBankRoutNumber())
                                     .put("UserName", ncrRequest.getUserName())
                                     .put("BatchNumber", ncrRequest.getBatchNumber())
                                     .put("ItemSequenceNumber", ncrRequest.getItemSequenceNumber())
@@ -164,7 +164,21 @@ public class ApiService {
                         ncrRequest.setItemSequenceNumber(numGen);
                         ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
-                        String json = mapper.writeValueAsString(ncrRequest);
+                        String json = new JSONObject().put("Branch", ncrRequest.getPresentingBankRoutNumber())
+                                    .put("UserName", ncrRequest.getUserName())
+                                    .put("BatchNumber", ncrRequest.getBatchNumber())
+                                    .put("ItemSequenceNumber", ncrRequest.getItemSequenceNumber())
+                                    .put("PayorBankRoutNumber", ncrRequest.getPayorBankRoutNumber())
+                                    .put("Amount", ncrRequest.getAmount())
+                                    .put("AccountNumber", ncrRequest.getAccountNumber())
+                                    .put("SerialNumber", ncrRequest.getSerialNumber())
+                                    .put("PresentingBankRoutNumber", ncrRequest.getPresentingBankRoutNumber())
+                                    .put("PayerName", ncrRequest.getPayeeName())
+                                    .put("TransactionDetails", ncrRequest.getTransactionDetails())
+                                    .put("DepositorAccountNumber", ncrRequest.getDepositorAccountNumber())
+                                    .put("PayeeName", ncrRequest.getPayeeName()).put("UserID", ncrRequest.getUserID())
+                                    .put("UserBranch", ncrRequest.getUserBranch())
+                                    .put("SessionID", ncrRequest.getSessionID()).toString();
                         log.info("before calling callNcrPay [{}]", json);
 
                         // json = mapper.writeValueAsString(ncrRequest);
@@ -231,8 +245,17 @@ public class ApiService {
         try {
             conn = utils.doConnexion(applicationProperties.getUrlNewOutward(), jsonStr, "application/json", null, null,
                     true);
-            log.info("resp code envoi [{}]", conn.getResponseCode());
+            log.info("resp code envoi callNcrPay [{}]", conn.getResponseCode());
+            String result ="";
+            BufferedReader br = null;
             if (conn != null && conn.getResponseCode() == 200) {
+                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String ligne = br.readLine();
+                while (ligne != null) {
+                    result += ligne;
+                    ligne = br.readLine();
+                }
+                log.info("callNcrPay result ===== [{}]", result);
                 Tracking tracking = new Tracking();
                 tracking.setRequestId("");
                 tracking.setCodeResponse("200");
@@ -243,6 +266,24 @@ public class ApiService {
                 tracking.setRequestTr(jsonStr);
                 trackingService.save(tracking);
                 return true;
+            }else if(conn!=null){
+                br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                String ligne = br.readLine();
+                while (ligne != null) {
+                    result += ligne;
+                    ligne = br.readLine();
+                }
+                log.info("callNcrPay result ===== [{}]", result);
+                Tracking tracking = new Tracking();
+            tracking.setRequestId("");
+            tracking.setCodeResponse("402");
+            tracking.setDateResponse(Instant.now());
+            tracking.setEndPoint("callNcrPay");
+            tracking.setLoginActeur("x");
+            tracking.setResponseTr("KO");
+            tracking.setRequestTr(jsonStr);
+            tracking.setResponseTr(result);
+            trackingService.save(tracking);
             }
         } catch (IOException e) {
             log.error("Erreur sur callNcrPay [{}]", e);
@@ -304,7 +345,7 @@ public class ApiService {
             BufferedReader br = null;
             JSONObject obj = new JSONObject();
             String result = "";
-            log.info("resp code envoi [{}]", (conn != null ? conn.getResponseCode() : ""));
+            log.info("resp code envoi newInward [{}]", (conn != null ? conn.getResponseCode() : ""));
             if (conn != null && conn.getResponseCode() == 200) {
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String ligne = br.readLine();

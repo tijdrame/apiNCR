@@ -34,7 +34,7 @@ public class Utils {
         OutputStream os = null;
         HttpURLConnection conn = null;
         try {
-            log.info("end point wso2 calling== [{}]", endPoint);
+            log.info("end point calling== [{}]", endPoint);
             URL url = new URL(endPoint);
             conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
