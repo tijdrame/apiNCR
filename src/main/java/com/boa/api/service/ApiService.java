@@ -121,7 +121,22 @@ public class ApiService {
                             ncrRequest.setItemSequenceNumber(numGen);
                             ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
-                            String json = mapper.writeValueAsString(ncrRequest);
+                            // String json = mapper.writeValueAsString(ncrRequest);
+                            String json = new JSONObject().put("Branch", ncrRequest.getBranchCode())
+                                    .put("UserName", ncrRequest.getUserName())
+                                    .put("BatchNumber", ncrRequest.getBatchNumber())
+                                    .put("ItemSequenceNumber", ncrRequest.getItemSequenceNumber())
+                                    .put("PayorBankRoutNumber", ncrRequest.getPayorBankRoutNumber())
+                                    .put("Amount", ncrRequest.getAmount())
+                                    .put("AccountNumber", ncrRequest.getAccountNumber())
+                                    .put("SerialNumber", ncrRequest.getSerialNumber())
+                                    .put("PresentingBankRoutNumber", ncrRequest.getPresentingBankRoutNumber())
+                                    .put("PayerName", ncrRequest.getPayeeName())
+                                    .put("TransactionDetails", ncrRequest.getTransactionDetails())
+                                    .put("DepositorAccountNumber", ncrRequest.getDepositorAccountNumber())
+                                    .put("PayeeName", ncrRequest.getPayeeName()).put("UserID", ncrRequest.getUserID())
+                                    .put("UserBranch", ncrRequest.getUserBranch())
+                                    .put("SessionID", ncrRequest.getSessionID()).toString();
                             log.info("before calling callNcrPay [{}]", json);
                             Boolean res = callNcrPay(json);
 
@@ -246,7 +261,7 @@ public class ApiService {
     }
 
     public InwardResponse newInward(InwardRequest inwardRequest, HttpServletRequest request) {
-		log.info("Enter in inwardRequest=== [{}]", inwardRequest);
+        log.info("Enter in inwardRequest=== [{}]", inwardRequest);
 
         InwardResponse genericResp = new InwardResponse();
         Tracking tracking = new Tracking();
@@ -263,7 +278,7 @@ public class ApiService {
             return genericResp;
         }
 
-        if(StringUtils.isEmpty(inwardRequest.getDebitorAccount())){
+        if (StringUtils.isEmpty(inwardRequest.getDebitorAccount())) {
             Optional<ParamGeneral> debitAccount = paramGeneralService.findByCode("debitorAccount");
             if (!debitAccount.isPresent()) {
                 genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
@@ -276,20 +291,20 @@ public class ApiService {
             }
             inwardRequest.setDebitorAccount(debitAccount.get().getVarString1());
         }
-        
+
         try {
             String jsonStr = new JSONObject().put("cptDeb", inwardRequest.getDebitorAccount())
                     .put("cptCred", inwardRequest.getCreditorAccount()).put("amount", inwardRequest.getAmount())
                     .put("devise", inwardRequest.getCurrency()).put("dateTrf", inwardRequest.getTransfertDate())
                     .put("motif", inwardRequest.getDescription()).put("language", inwardRequest.getLanguage())
                     .put("xmemeUser", inwardRequest.getSameUser()).toString();
-                log.info("Requete newInward wso2 = [{}]", jsonStr);
+            log.info("Requete newInward wso2 = [{}]", jsonStr);
             HttpURLConnection conn = utils.doConnexion(endPoint.get().getEndPoints(), jsonStr, "application/json", null,
                     null, false);
             BufferedReader br = null;
             JSONObject obj = new JSONObject();
             String result = "";
-            log.info("resp code envoi [{}]", (conn!=null?conn.getResponseCode():""));
+            log.info("resp code envoi [{}]", (conn != null ? conn.getResponseCode() : ""));
             if (conn != null && conn.getResponseCode() == 200) {
                 br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String ligne = br.readLine();
@@ -301,9 +316,10 @@ public class ApiService {
                 log.info("newInward result ===== [{}]", result);
                 // if(result.contains(";")) result = result.replace(";", " ");
                 obj = new JSONObject(result);
-                obj = obj.getJSONObject("data"); 
+                obj = obj.getJSONObject("data");
 
-                if (obj.toString() != null && !obj.isNull("responses") && !obj.getJSONObject("responses").getString("response").contains("-1")) {
+                if (obj.toString() != null && !obj.isNull("responses")
+                        && !obj.getJSONObject("responses").getString("response").contains("-1")) {
                     genericResp.setCode(ICodeDescResponse.SUCCES_CODE);
                     genericResp.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
                     genericResp.setDateResponse(Instant.now());
@@ -311,7 +327,7 @@ public class ApiService {
                     ObjectMapper mapper = new ObjectMapper();
                     Map<String, Object> map = mapper.readValue(obj.toString(), Map.class);
                     genericResp.setDataInward(map);
-                    //genericResp.setUserCode(obj.getString("rucode"));
+                    // genericResp.setUserCode(obj.getString("rucode"));
                     tracking = createTracking(tracking, ICodeDescResponse.SUCCES_CODE, request.getRequestURI(),
                             genericResp.toString(), inwardRequest.toString(), genericResp.getResponseReference());
                 } else {
@@ -324,7 +340,7 @@ public class ApiService {
                     tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(),
                             genericResp.toString(), inwardRequest.toString(), genericResp.getResponseReference());
                 }
-            } else if(conn!=null){
+            } else if (conn != null) {
                 br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
                 String ligne = br.readLine();
                 while (ligne != null) {
@@ -333,17 +349,17 @@ public class ApiService {
                 }
                 log.info("resp envoi error ===== [{}]", result);
                 obj = new JSONObject(result);
-                
-                ObjectMapper mapper = new ObjectMapper(); Map<String, Object> map =
-                mapper.readValue(result, Map.class);
-                
+
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, Object> map = mapper.readValue(result, Map.class);
+
                 genericResp.setDataInward(map);
                 genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
                 genericResp.setDateResponse(Instant.now());
                 genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
                 tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(),
                         genericResp.toString(), inwardRequest.toString(), genericResp.getResponseReference());
-            }else {
+            } else {
                 genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
                 genericResp.setDateResponse(Instant.now());
                 genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION);
@@ -357,12 +373,12 @@ public class ApiService {
             // genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION + " " +
             // e.getMessage());
             genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION + e.getMessage());
-            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(), genericResp.getDescription(),
-                    inwardRequest.toString(), genericResp.getResponseReference());
+            tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, request.getRequestURI(),
+                    genericResp.getDescription(), inwardRequest.toString(), genericResp.getResponseReference());
         }
         trackingService.save(tracking);
         return genericResp;
-	}
+    }
 
     private NCRRequest constructRequest(JSONObject myObj) {
         NCRRequest ncrRequest = new NCRRequest();
@@ -378,8 +394,6 @@ public class ApiService {
         }
         return ncrRequest;
     }
-
-	
 
     /*
      * public static void main(String[] args) { String num =
