@@ -122,7 +122,7 @@ public class ApiService {
                             ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
                             // String json = mapper.writeValueAsString(ncrRequest);
-                            String json = new JSONObject().put("Branch", ncrRequest.getPresentingBankRoutNumber())
+                            String json = new JSONObject().put("Branch", ncrRequest.getBranchCode())
                                     .put("UserName", ncrRequest.getUserName())
                                     .put("BatchNumber", ncrRequest.getBatchNumber())
                                     .put("ItemSequenceNumber", ncrRequest.getItemSequenceNumber())
@@ -164,7 +164,7 @@ public class ApiService {
                         ncrRequest.setItemSequenceNumber(numGen);
                         ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
-                        String json = new JSONObject().put("Branch", ncrRequest.getPresentingBankRoutNumber())
+                        String json = new JSONObject().put("Branch", ncrRequest.getBranchCode())
                                     .put("UserName", ncrRequest.getUserName())
                                     .put("BatchNumber", ncrRequest.getBatchNumber())
                                     .put("ItemSequenceNumber", ncrRequest.getItemSequenceNumber())
