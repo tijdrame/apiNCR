@@ -58,8 +58,9 @@ public class ApiService {
         this.paramGeneralService = paramGeneralService;
     }
 
-    @Scheduled(cron = "0 0/45 * * * ?")
-    // @Scheduled(cron = "0 0 12 * * ?")
+    @Scheduled(cron = "0 0 * ? * *")
+    // @Scheduled(cron = "0 0/45 * * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?") 
     public void ncrProcessing() {
         log.info("Enter in ncrProcessing===[{}]", Instant.now());
 
@@ -240,6 +241,8 @@ public class ApiService {
 
     private Boolean callNcrPay(String jsonStr) {
         log.info("=============In callNcrPay [{}]", jsonStr);
+        Tracking tracking = new Tracking();
+        tracking.dateRequest(Instant.now());
         // http://10.120.71.11/ACHWebApi/api/ach/NewOutward
         HttpURLConnection conn;
         try {
@@ -256,12 +259,12 @@ public class ApiService {
                     ligne = br.readLine();
                 }
                 log.info("callNcrPay result ===== [{}]", result);
-                Tracking tracking = new Tracking();
+                
                 tracking.setRequestId("");
                 tracking.setCodeResponse("200");
                 tracking.setDateResponse(Instant.now());
                 tracking.setEndPoint("callNcrPay");
-                tracking.setLoginActeur("x");
+                tracking.setLoginActeur("CRON");
                 tracking.setResponseTr("OK");
                 tracking.setRequestTr(jsonStr);
                 trackingService.save(tracking);
@@ -274,26 +277,22 @@ public class ApiService {
                     ligne = br.readLine();
                 }
                 log.info("callNcrPay result ===== [{}]", result);
-                Tracking tracking = new Tracking();
             tracking.setRequestId("");
             tracking.setCodeResponse("402");
             tracking.setDateResponse(Instant.now());
             tracking.setEndPoint("callNcrPay");
-            tracking.setLoginActeur("x");
-            tracking.setResponseTr("KO");
+            tracking.setLoginActeur("CRON");
             tracking.setRequestTr(jsonStr);
             tracking.setResponseTr(result);
             trackingService.save(tracking);
             }
         } catch (IOException e) {
             log.error("Erreur sur callNcrPay [{}]", e);
-            Tracking tracking = new Tracking();
             tracking.setRequestId("");
             tracking.setCodeResponse("402");
             tracking.setDateResponse(Instant.now());
             tracking.setEndPoint("callNcrPay");
-            tracking.setLoginActeur("x");
-            tracking.setResponseTr("KO");
+            tracking.setLoginActeur("CRON");
             tracking.setRequestTr(jsonStr);
             tracking.setResponseTr(e.getMessage());
             trackingService.save(tracking);
