@@ -58,11 +58,11 @@ public class ApiService {
         this.paramGeneralService = paramGeneralService;
     }
 
-    @Scheduled(cron = "0 0 * ? * *")
-    // @Scheduled(cron = "0 0/45 * * * ?")
-    // @Scheduled(cron = "0 0 12 * * ?") 
+    //@Scheduled(fixedDelayString  = "PT2M")
+    @Scheduled(cron = "@hourly")
+    //@Scheduled(cron = "0 0/45 * * * ?")
     public void ncrProcessing() {
-        log.info("Enter in ncrProcessing===[{}]", Instant.now());
+        log.info("== Enter in ncrProcessing===[{}]", Instant.now());
 
         // NCRResponse genericResp = new NCRResponse();
         Tracking tracking = new Tracking();
@@ -285,6 +285,7 @@ public class ApiService {
             tracking.setRequestTr(jsonStr);
             tracking.setResponseTr(result);
             trackingService.save(tracking);
+            // return false;
             }
         } catch (IOException e) {
             log.error("Erreur sur callNcrPay [{}]", e);
@@ -296,6 +297,7 @@ public class ApiService {
             tracking.setRequestTr(jsonStr);
             tracking.setResponseTr(e.getMessage());
             trackingService.save(tracking);
+            // return false;
         }
         return false;
     }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,12 @@ public class ApiResource {
         this.apiService = apiService;
     }
 
+    /*@GetMapping ("/testCron")
+    public String testCron(){
+        apiService.ncrProcessing();
+        return "ok";
+    }*/
+
     @PostMapping("/NewInward")
     public ResponseEntity<InwardResponse> newInward(@RequestBody InwardRequest inwardRequest, HttpServletRequest request) {
         log.debug("REST request to NewInward : [{}]", inwardRequest);
@@ -45,6 +52,7 @@ public class ApiResource {
                     .body(response);
         }
         response = apiService.newInward(inwardRequest, request);
+
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
 
