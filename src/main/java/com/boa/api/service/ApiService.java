@@ -109,7 +109,7 @@ public class ApiService {
                 if (obj.toString() != null && !obj.isNull("data") && !obj.getJSONObject("data").isNull("outward")) {
                     NCRRequest ncrRequest = new NCRRequest();
 
-                    String numGen = RandomStringUtils.randomNumeric(15, 15);
+                    
 
                     if (obj.getJSONObject("data").get("outward") instanceof JSONArray) {
                         jsonArray = obj.getJSONObject("data").getJSONArray("outward");
@@ -117,13 +117,14 @@ public class ApiService {
                             ncrRequest = constructRequest(jsonArray.getJSONObject(i));
                             if (ncrRequest == null)
                                 continue;
+                            String numGen = RandomStringUtils.randomNumeric(15, 15);
                             ncrRequest.setUserName(applicationProperties.getUserName());
                             ncrRequest.setSessionID(applicationProperties.getSessionID());
                             ncrRequest.setUserID(applicationProperties.getUserID());
                             ncrRequest.setPresentingBankRoutNumber(applicationProperties.getPresentingBankRoutNumber());
 
                             ncrRequest.setBatchNumber(numGen);
-                            ncrRequest.setItemSequenceNumber(numGen);
+                            ncrRequest.setItemSequenceNumber(RandomStringUtils.randomNumeric(15, 15));
                             ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
                             // String json = mapper.writeValueAsString(ncrRequest);
@@ -160,13 +161,15 @@ public class ApiService {
                         ncrRequest = constructRequest(jsonObject);
                         if (ncrRequest == null)
                             return;
+
+                        String numGen = RandomStringUtils.randomNumeric(15, 15);
                         ncrRequest.setUserName(applicationProperties.getUserName());
                         ncrRequest.setSessionID(applicationProperties.getSessionID());
                         ncrRequest.setUserID(applicationProperties.getUserID());
                         ncrRequest.setPresentingBankRoutNumber(applicationProperties.getPresentingBankRoutNumber());
 
                         ncrRequest.setBatchNumber(numGen);
-                        ncrRequest.setItemSequenceNumber(numGen);
+                        ncrRequest.setItemSequenceNumber(RandomStringUtils.randomNumeric(15, 15));
                         ncrRequest.setSerialNumber(numGen.substring(0, 6));
 
                         String json = new JSONObject().put("Branch", ncrRequest.getBranchCode())
