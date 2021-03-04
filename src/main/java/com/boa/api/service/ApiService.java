@@ -58,9 +58,9 @@ public class ApiService {
         this.paramGeneralService = paramGeneralService;
     }
 
-    @Scheduled(fixedDelayString  = "PT180M")
-    //@Scheduled(cron = "@hourly")
+    
     //@Scheduled(cron = "0 0/45 * * * ?")
+    @Scheduled(fixedDelayString  = "PT180M")
     public void ncrProcessing() {
         log.info("== Enter in ncrProcessing===[{}]", Instant.now());
 
