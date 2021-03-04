@@ -74,12 +74,16 @@ public class ApiService {
                 tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrPaye", "End point non paramétré",
                         "CRON du " + Instant.now(), "");
                 trackingService.save(tracking);
+                log.error("End point ncrPaye non paramétré");
+                return;
             }
             Optional<ParamEndPoint> inEndPoint = endPointService.findByCodeParam("ncrIn");
             if (!inEndPoint.isPresent()) {
                 tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrIn", "End point non paramétré",
                         "CRON du " + Instant.now(), "");
                 trackingService.save(tracking);
+                log.error("End point ncrIn non paramétré");
+                return;
             }
 
             String jsonStr = new JSONObject().put("param1", "1111").put("param2", "2222").put("param3", "3333")
