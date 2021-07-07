@@ -167,8 +167,9 @@ application:
   presentingBankRoutNumber: 210100
   userID: super
   sessionID: 21
-  urlNewOutward: http://10.120.71.11/ACHWebApi/api/ach/NewOutward 
-  #urlNewOutward: http://localhost:8085/NewOutward 
+  urlNewOutward: https://winsrvgh-ACH.boaghana.local/ACHWebApi/api/ach/NewOutward 
+  # urlNewOutward: http://10.120.71.11/ACHWebApi/api/ach/NewOutward 
+  # urlNewOutward: http://localhost:8085/NewOutward 
   userAuth: super
   password: 2CB54983BDE8AD02287C239FCF648D0C9AF7ADF7
   timeOut: 20000
