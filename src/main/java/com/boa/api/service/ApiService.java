@@ -60,7 +60,7 @@ public class ApiService {
 
     
     //@Scheduled(cron = "0 0/45 * * * ?")
-    @Scheduled(fixedDelayString  = "PT180M")
+    @Scheduled(fixedDelayString  = "PT5M")
     public void ncrProcessing() {
         log.info("== Enter in ncrProcessing===[{}]", Instant.now());
 
