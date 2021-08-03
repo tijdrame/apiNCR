@@ -195,8 +195,27 @@ public class ApiService {
                             // TODO traitement resp positive de ncr
                             jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
                                     .put("param3", "3333").put("param4", "4444").toString();
-                            utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null, null,
-                                    false);
+                            HttpURLConnection doConnexion = utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr,
+                                    "application/json", null, null, false);
+                            if (doConnexion != null && doConnexion.getResponseCode() == 200) {
+                                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                                ligne = br.readLine();
+                                while (ligne != null) {
+                                    result += ligne;
+                                    ligne = br.readLine();
+                                }
+                                log.info("ncrIn result ===== [{}] for nooper [{}]", result, ncrRequest.getNooper());
+                            } else {
+
+                                br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                                ligne = br.readLine();
+                                while (ligne != null) {
+                                    result += ligne;
+                                    ligne = br.readLine();
+                                }
+                                log.info("resp ncrIn error ===== [{}] for nooper", result, ncrRequest.getNooper());
+
+                            }
                         } else {
                             // TODO resp negative
                         }
@@ -222,7 +241,9 @@ public class ApiService {
                         "Connexeion impossible", "CRON du " + Instant.now(), "");
                 tracking.setResponseTr(result);
             }
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             log.error("Exception in ncrPaye [{}]", e.getMessage());
             tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "ncrProcessing", "Connexeion impossible",
                     "CRON du " + Instant.now(), "");
