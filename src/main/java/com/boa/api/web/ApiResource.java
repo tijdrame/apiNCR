@@ -5,7 +5,9 @@ import java.time.Instant;
 import javax.servlet.http.HttpServletRequest;
 
 import com.boa.api.request.InwardRequest;
+import com.boa.api.request.NcrInRequest;
 import com.boa.api.response.InwardResponse;
+import com.boa.api.response.NcrInResponse;
 import com.boa.api.service.ApiService;
 import com.boa.api.service.util.ICodeDescResponse;
 
@@ -52,6 +54,22 @@ public class ApiResource {
                     .body(response);
         }
         response = apiService.newInward(inwardRequest, request);
+
+        return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
+    }
+
+    @PostMapping("/ncrIn")
+    public ResponseEntity<NcrInResponse> ncrIn(@RequestBody NcrInRequest ncrRequest, HttpServletRequest request) {
+        log.debug("REST request to NewInward : [{}]", ncrRequest);
+        NcrInResponse response = new NcrInResponse();
+        if (controleParam(ncrRequest.getNooper()) ) {
+            response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
+            response.setDateResponse(Instant.now());
+            response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
+            return ResponseEntity.badRequest().header("Authorization", request.getHeader("Authorization"))
+                    .body(response);
+        }
+        response = apiService.ncrIn(ncrRequest, request);
 
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);
     }
