@@ -40,6 +40,7 @@ public class Utils {
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", appType);
+            log.info("endPoint [{}], params [{}]", endPoint, params);
             if (auth) {
                 String autho = applicationProperties.getUserAuth() + ":" + applicationProperties.getPassword();
                 String basicAuth = "Basic " + new String(Base64.getEncoder().encode(autho.getBytes()));
