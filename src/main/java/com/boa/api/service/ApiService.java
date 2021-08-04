@@ -149,8 +149,20 @@ public class ApiService {
                                 // TODO traitement resp positive de ncr
                                 jsonStr = new JSONObject().put("nooper", ncrRequest.getNooper()).put("param2", "2222")
                                         .put("param3", "3333").put("param4", "4444").toString();
-                                utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null,
+                                        HttpURLConnection conBis = utils.doConnexion(inEndPoint.get().getEndPoints(), jsonStr, "application/json", null,
                                         null, false);
+                                        if (conBis != null && conBis.getResponseCode() == 200) {
+                                            br = new BufferedReader(new InputStreamReader(conBis.getInputStream()));
+                                            ligne = br.readLine();
+                                            result = "";
+                                            while (ligne != null) {
+                                                result += ligne;
+                                                ligne = br.readLine();
+                                            }
+                                            // result = IOUtils.toString(conn.getInputStream(), "UTF-8");
+                                            log.info("Enchainement ncrIn result  ===== [{}]", result);
+                                        }
+
                             } else {
                                 // TODO resp negative
                             }
@@ -498,13 +510,13 @@ public class ApiService {
                     ligne = br.readLine();
                 }
                 // result = IOUtils.toString(conn.getInputStream(), "UTF-8");
-                log.info("ncrIn result ===== [{}]", result);
+                log.info("direct ncrIn result ===== [{}]", result);
                 // if(result.contains(";")) result = result.replace(";", " ");
                 JSONObject obj = new JSONObject(result);
                 obj = obj.getJSONObject("data");
                 ObjectMapper mapper = new ObjectMapper();
                 Map<String, Object> map = mapper.readValue(obj.toString(), Map.class);
-                if (obj.getString("RCOD").equals("0412")) {
+                if (obj.getString("p_o_cod").equals("0100")) {
                     genericResp.setCode(ICodeDescResponse.SUCCES_CODE);
                     genericResp.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
                 } else {
@@ -519,73 +531,7 @@ public class ApiService {
             tracking.requestId("").dateResponse(Instant.now()).codeResponse("200")
                     .endPoint(endPoint.get().getEndPoints()).requestTr("").responseTr("");
 
-            /*
-             * String jsonStr2 = new JSONObject().put("nooper",
-             * ncrRequest.getNooper()).toString(); log.info("Requete ncrIn wso2 = [{}]",
-             * jsonStr); HttpURLConnection conn =
-             * utils.doConnexion(endPoint.get().getEndPoints(), jsonStr2,
-             * "application/json", null, null, false); BufferedReader br = null; JSONObject
-             * obj = new JSONObject(); String result = ""; tracking.setLoginActeur("TEST");
-             * tracking.requestId("").dateResponse(Instant.now()).codeResponse("200")
-             * .endPoint(endPoint.get().getEndPoints()).requestTr("").responseTr("");
-             * log.info("resp code envoi ncrIn [{}]", (conn != null ? conn.getResponseCode()
-             * : "")); if (conn != null && conn.getResponseCode() == 200) { br = new
-             * BufferedReader(new InputStreamReader(conn.getInputStream())); String ligne =
-             * br.readLine(); while (ligne != null) { result += ligne; ligne =
-             * br.readLine(); } // result = IOUtils.toString(conn.getInputStream(),
-             * "UTF-8"); log.info("ncrIn result ===== [{}]", result); //
-             * if(result.contains(";")) result = result.replace(";", " "); obj = new
-             * JSONObject(result); obj = obj.getJSONObject("data"); ObjectMapper mapper =
-             * new ObjectMapper(); Map<String, Object> map =
-             * mapper.readValue(obj.toString(), Map.class); genericResp.dataNcrIn(map);
-             * genericResp.setCode(ICodeDescResponse.SUCCES_CODE);
-             * genericResp.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
-             * genericResp.setDateResponse(Instant.now()); /* if (obj.toString() != null &&
-             * !obj.isNull("responses") &&
-             * !obj.getJSONObject("responses").getString("response").contains("-1")) {
-             * genericResp.setCode(ICodeDescResponse.SUCCES_CODE);
-             * genericResp.setDescription(ICodeDescResponse.SUCCES_DESCRIPTION);
-             * genericResp.setDateResponse(Instant.now()); obj =
-             * obj.getJSONObject("responses"); ObjectMapper mapper = new ObjectMapper();
-             * Map<String, Object> map = mapper.readValue(obj.toString(), Map.class);
-             * genericResp.setDataNcrIn(map); //
-             * genericResp.setUserCode(obj.getString("rucode")); tracking =
-             * createTracking(tracking, ICodeDescResponse.SUCCES_CODE,
-             * request.getRequestURI(), genericResp.toString(), ncrRequest.toString(),
-             * genericResp.getResponseReference()); } else {
-             * genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-             * genericResp.setDateResponse(Instant.now());
-             * genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION); ObjectMapper
-             * mapper = new ObjectMapper(); Map<String, Object> map =
-             * mapper.readValue(obj.toString(), Map.class); genericResp.setDataNcrIn(map);
-             * tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE,
-             * request.getRequestURI(), genericResp.toString(), ncrRequest.toString(),
-             * genericResp.getResponseReference()); }
-             */
-            /*
-             * } else if (conn != null) { br = new BufferedReader(new
-             * InputStreamReader(conn.getErrorStream())); String ligne = br.readLine();
-             * while (ligne != null) { result += ligne; ligne = br.readLine(); }
-             * log.info("resp envoi error ===== [{}]", result); obj = new
-             * JSONObject(result);
-             * 
-             * ObjectMapper mapper = new ObjectMapper(); Map<String, Object> map =
-             * mapper.readValue(result, Map.class);
-             * 
-             * genericResp.setDataNcrIn(map);
-             * genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-             * genericResp.setDateResponse(Instant.now());
-             * genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION); tracking =
-             * createTracking(tracking, ICodeDescResponse.ECHEC_CODE,
-             * request.getRequestURI(), genericResp.toString(), ncrRequest.toString(),
-             * genericResp.getResponseReference()); } else {
-             * genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-             * genericResp.setDateResponse(Instant.now());
-             * genericResp.setDescription(ICodeDescResponse.ECHEC_DESCRIPTION); tracking =
-             * createTracking(tracking, ICodeDescResponse.ECHEC_CODE,
-             * request.getRequestURI(), genericResp.toString(), ncrRequest.toString(),
-             * genericResp.getResponseReference()); }
-             */
+            
         } catch (Exception e) {
             log.error("Exception in ncrIn [{}]", e);
             genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
