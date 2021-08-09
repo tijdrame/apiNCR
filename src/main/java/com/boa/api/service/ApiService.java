@@ -136,7 +136,7 @@ public class ApiService {
                                     .put("AccountNumber", ncrRequest.getAccountNumber())
                                     .put("SerialNumber", ncrRequest.getSerialNumber())
                                     .put("PresentingBankRoutNumber", ncrRequest.getPresentingBankRoutNumber())
-                                    .put("PayerName", ncrRequest.getPayeeName())
+                                    .put("PayerName", ncrRequest.getPayerName())
                                     .put("TransactionDetails", ncrRequest.getTransactionDetails())
                                     .put("DepositorAccountNumber", ncrRequest.getDepositorAccountNumber())
                                     .put("PayeeName", ncrRequest.getPayeeName()).put("UserID", ncrRequest.getUserID())
@@ -192,7 +192,7 @@ public class ApiService {
                                 .put("AccountNumber", ncrRequest.getAccountNumber())
                                 .put("SerialNumber", ncrRequest.getSerialNumber())
                                 .put("PresentingBankRoutNumber", ncrRequest.getPresentingBankRoutNumber())
-                                .put("PayerName", ncrRequest.getPayeeName())
+                                .put("PayerName", ncrRequest.getPayerName())
                                 .put("TransactionDetails", ncrRequest.getTransactionDetails())
                                 .put("DepositorAccountNumber", ncrRequest.getDepositorAccountNumber())
                                 .put("PayeeName", ncrRequest.getPayeeName()).put("UserID", ncrRequest.getUserID())
@@ -466,8 +466,8 @@ public class ApiService {
         try {
             ncrRequest.branchCode(myObj.getString("AGENCE")).payorBankRoutNumber(myObj.getString("SCODE"))
                     .amount(myObj.getDouble("MNTTOTBE")).accountNumber(myObj.getString("RCOMPTE"))
-                    .payerName(myObj.getString("NOMBQBE")).transactionDetails(myObj.getString("MOTIF"))
-                    .depositorAccountNumber(myObj.getString("COMPTE")).payeeName(myObj.getString("DORDRED"))
+                    .payerName(myObj.getString("DORDRED")).transactionDetails(myObj.getString("MOTIF"))
+                    .depositorAccountNumber(myObj.getString("COMPTE")).payeeName(myObj.getString("NOMBE"))
                     .userBranch(myObj.getString("AGENCE")).nooper(myObj.getString("NOOPER"));
         } catch (JSONException e) {
             log.error("Exception in constructRequest [{}]", e);
