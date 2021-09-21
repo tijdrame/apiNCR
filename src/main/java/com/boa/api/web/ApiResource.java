@@ -53,6 +53,13 @@ public class ApiResource {
             return ResponseEntity.badRequest().header("Authorization", request.getHeader("Authorization"))
                     .body(response);
         }
+        if(!inwardRequest.getCurrency().equalsIgnoreCase("ghs")){
+            response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
+            response.setDateResponse(Instant.now());
+            response.setDescription(ICodeDescResponse.DEVISE_ATTENDU_GSH);
+            return ResponseEntity.badRequest().header("Authorization", request.getHeader("Authorization"))
+                    .body(response);
+        }
         response = apiService.newInward(inwardRequest, request);
 
         return ResponseEntity.ok().header("Authorization", request.getHeader("Authorization")).body(response);

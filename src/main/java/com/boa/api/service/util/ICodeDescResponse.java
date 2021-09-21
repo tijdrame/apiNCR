@@ -31,4 +31,6 @@ public interface ICodeDescResponse {
     public static String COMPTE_ABSENT_DESC = "Parametre compte absent";
     public static Integer INSTITUTION_ABSENT_CODE = 407;
     public static String INSTITUTION_ABSENT_DESC = "Parametre client Absent";
+    public static String DEVISE_ATTENDU_GSH = "The currency must be GHS";
+
 }
