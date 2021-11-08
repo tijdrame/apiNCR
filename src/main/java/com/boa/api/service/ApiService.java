@@ -359,19 +359,42 @@ public class ApiService {
             return genericResp;
         }
 
-        if (StringUtils.isEmpty(inwardRequest.getDebitorAccount())) {
-            Optional<ParamGeneral> debitAccount = paramGeneralService.findByCode("debitorAccount");
-            if (!debitAccount.isPresent()) {
-                genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
-                genericResp.setDescription(ICodeDescResponse.DEBIT_ACCOUNT_ABSENT);
-                genericResp.setDateResponse(Instant.now());
-                tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "newInward", genericResp.toString(),
-                        inwardRequest.toString(), genericResp.getResponseReference());
-                trackingService.save(tracking);
-                return genericResp;
+        if(inwardRequest.getIsIn().equalsIgnoreCase("in")){
+            if (StringUtils.isEmpty(inwardRequest.getDebitorAccount())) {
+                Optional<ParamGeneral> debitAccount = paramGeneralService.findByCode("debitorAccount");
+                if (!debitAccount.isPresent()) {
+                    genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
+                    genericResp.setDescription(ICodeDescResponse.DEBIT_ACCOUNT_ABSENT);
+                    genericResp.setDateResponse(Instant.now());
+                    tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "newInward", genericResp.toString(),
+                            inwardRequest.toString(), genericResp.getResponseReference());
+                    trackingService.save(tracking);
+                    return genericResp;
+                }
+                inwardRequest.setDebitorAccount(debitAccount.get().getVarString1());
             }
-            inwardRequest.setDebitorAccount(debitAccount.get().getVarString1());
+        }else if(inwardRequest.getIsIn().equalsIgnoreCase("out")){
+            Optional<ParamGeneral> creditAccount = paramGeneralService.findByCode("creditAccount");
+                if (!creditAccount.isPresent()) {
+                    genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
+                    genericResp.setDescription(ICodeDescResponse.DEBIT_OUT_ABSENT);
+                    genericResp.setDateResponse(Instant.now());
+                    tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "newInward", genericResp.toString(),
+                            inwardRequest.toString(), genericResp.getResponseReference());
+                    trackingService.save(tracking);
+                    return genericResp;
+                }
+                inwardRequest.setDebitorAccount(creditAccount.get().getVarString1());
+        }else {
+            genericResp.setCode(ICodeDescResponse.ECHEC_CODE);
+                    genericResp.setDescription(ICodeDescResponse.REQUEST_INWARD_IN_OUT);
+                    genericResp.setDateResponse(Instant.now());
+                    tracking = createTracking(tracking, ICodeDescResponse.ECHEC_CODE, "newInward", genericResp.toString(),
+                            inwardRequest.toString(), genericResp.getResponseReference());
+                    trackingService.save(tracking);
+                    return genericResp;
         }
+        
 
         try {
             String jsonStr = new JSONObject().put("cptDeb", inwardRequest.getDebitorAccount())

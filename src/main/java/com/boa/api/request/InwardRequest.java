@@ -14,4 +14,5 @@ public class InwardRequest {
     private String description;
     private String language;
     private String sameUser;
+    private String isIn;
 }

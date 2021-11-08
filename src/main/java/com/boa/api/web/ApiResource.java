@@ -46,7 +46,7 @@ public class ApiResource {
         if (controleParam(inwardRequest.getCreditorAccount()) || controleParam(inwardRequest.getAmount())
                 || controleParam(inwardRequest.getCurrency()) || controleParam(inwardRequest.getTransfertDate())
                 || controleParam(inwardRequest.getDescription()) || controleParam(inwardRequest.getLanguage())
-                || controleParam(inwardRequest.getSameUser()) ) {
+                || controleParam(inwardRequest.getSameUser()) || controleParam(inwardRequest.getIsIn()) ) {
             response.setCode(ICodeDescResponse.PARAM_ABSENT_CODE);
             response.setDateResponse(Instant.now());
             response.setDescription(ICodeDescResponse.PARAM_DESCRIPTION);
